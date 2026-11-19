@@ -1,45 +1,70 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Orbitron } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+import { FloatingDock } from "@/components/floating-dock";
+import { MotionProvider } from "@/components/motion-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { StudyTimer } from "@/components/study-timer";
+import { themeScript } from "@/components/theme-toggle";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const orbitron = Orbitron({ variable: "--font-orbitron", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  // Vercel injects VERCEL_PROJECT_PRODUCTION_URL at build time; fall back to localhost.
+  metadataBase: new URL(
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000",
+  ),
   title: {
-    default: "NeoLearn AI · AI 工程学习平台",
-    template: "%s · NeoLearn AI",
+    default: "NeoLearn · AI 工程学习平台",
+    template: "%s · NeoLearn",
   },
   description:
     "面向中文开发者的 AI 工程入门平台：LLM 基础、Prompt Engineering、RAG、AI Agents、MCP、Model Evaluation 与 LLMOps。",
+  keywords: ["AI 工程", "LLM", "Prompt Engineering", "RAG", "AI Agents", "MCP", "LLMOps", "中文教程"],
+  openGraph: {
+    type: "website",
+    locale: "zh_CN",
+    siteName: "NeoLearn",
+    title: "NeoLearn · AI 工程学习平台",
+    description: "从 LLM 原理到生产运维，一条清晰的中文 AI 工程学习路线。",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#06051a",
+  // Light is the default theme regardless of OS setting; dark is opt-in via the toggle.
+  themeColor: "#ffffff",
 };
 
+/** AI assistant is offline for now; see components/floating-dock.tsx to restore. */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="zh-CN"
-      className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} h-full antialiased`}
+      data-theme="light"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="flex min-h-full flex-col">
-        <div className="cyber-bg" aria-hidden>
-          <div className="cyber-orb left-[8%] top-[18%] h-64 w-64 bg-fuchsia-600" />
-          <div
-            className="cyber-orb right-[6%] top-[40%] h-72 w-72 bg-cyan-500"
-            style={{ animationDelay: "-6s" }}
-          />
-        </div>
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-        <StudyTimer />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+        >
+          跳到主要内容
+        </a>
+        <MotionProvider>
+          <SiteHeader />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter />
+          <FloatingDock />
+        </MotionProvider>
       </body>
     </html>
   );

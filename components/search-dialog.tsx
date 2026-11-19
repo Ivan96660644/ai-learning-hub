@@ -1,7 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { easeApple } from "@/components/reveal";
 import { SearchResults } from "@/components/search-results";
 
 type SearchModule = typeof import("@/lib/search");
@@ -61,82 +63,99 @@ export function SearchDialog() {
       <button
         type="button"
         onClick={show}
-        className="flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-slate-400 transition hover:border-cyan-400/50 hover:text-slate-200 sm:w-56"
+        aria-label="搜索文章（⌘K）"
+        className="flex h-8 items-center gap-2 rounded-full px-2.5 text-[13px] text-muted transition-colors hover:bg-surface hover:text-fg"
       >
         <SearchIcon />
-        <span className="hidden sm:inline">搜索文章…</span>
-        <kbd className="ml-auto hidden rounded border border-white/10 px-1.5 font-mono text-[10px] text-slate-500 sm:inline">
-          ⌘K
-        </kbd>
+        <span className="hidden lg:inline">搜索</span>
+        <kbd className="hidden rounded-md border border-line px-1.5 font-sans text-[10px] lg:inline">⌘K</kbd>
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[10vh] backdrop-blur-sm"
-          onClick={close}
-          role="presentation"
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="搜索文章"
-            className="glass w-full max-w-xl overflow-hidden rounded-2xl bg-[#0b0a24]/90 shadow-[0_0_60px_-10px_rgba(255,61,242,0.45)]"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-start justify-center bg-black/25 px-4 pt-[12vh] backdrop-blur-sm dark:bg-black/50"
+            onClick={close}
+            role="presentation"
           >
-            <div className="flex items-center gap-3 border-b border-white/10 px-4">
-              <SearchIcon />
-              <input
-                autoFocus
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setActive(0);
-                }}
-                onKeyDown={onInputKey}
-                placeholder="搜索课程、章节、术语，例如 RAG、Token、MCP"
-                className="h-14 flex-1 bg-transparent text-base text-white outline-none placeholder:text-slate-500"
-              />
-              <kbd className="rounded border border-white/10 px-1.5 font-mono text-[10px] text-slate-500">
-                ESC
-              </kbd>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto p-3">
-              {!mod ? (
-                <p className="p-4 text-center text-sm text-slate-500">正在加载索引…</p>
-              ) : !query.trim() ? (
-                <div className="p-2">
-                  <p className="mb-2 text-xs text-slate-500">热门搜索</p>
-                  <div className="flex flex-wrap gap-2">
-                    {mod.popularQueries.map((q) => (
-                      <button
-                        key={q}
-                        type="button"
-                        onClick={() => setQuery(q)}
-                        className="rounded-full border border-white/10 px-3 py-1 text-sm text-slate-300 hover:border-fuchsia-400/60 hover:text-white"
-                      >
-                        {q}
-                      </button>
-                    ))}
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="搜索文章"
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: easeApple }}
+              className="w-full max-w-xl overflow-hidden rounded-3xl border border-line bg-card shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 border-b border-line px-5">
+                <SearchIcon />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setActive(0);
+                  }}
+                  onKeyDown={onInputKey}
+                  role="combobox"
+                  aria-expanded={hits.length > 0}
+                  aria-controls="search-dialog-list"
+                  aria-activedescendant={hits.length ? `search-dialog-${active}` : undefined}
+                  aria-label="搜索关键词"
+                  placeholder="搜索课程、章节、术语"
+                  className="h-14 flex-1 bg-transparent text-[17px] text-fg outline-none placeholder:text-muted"
+                />
+                <kbd className="rounded-md border border-line px-1.5 text-[10px] text-muted">esc</kbd>
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto p-2">
+                {!mod ? (
+                  <p className="p-6 text-center text-sm text-muted">正在加载索引…</p>
+                ) : !query.trim() ? (
+                  <div className="p-3">
+                    <p className="mb-3 text-xs font-medium text-muted">快速链接</p>
+                    <div className="flex flex-wrap gap-2">
+                      {mod.popularQueries.map((q) => (
+                        <button
+                          key={q}
+                          type="button"
+                          onClick={() => setQuery(q)}
+                          className="rounded-full bg-surface px-3 py-1.5 text-sm text-fg transition-colors hover:bg-line"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : hits.length === 0 ? (
-                <p className="p-6 text-center text-sm text-slate-400">
-                  没有找到与「{query}」相关的内容，换个关键词试试？
-                </p>
-              ) : (
-                <SearchResults hits={hits} query={query} activeIndex={active} onNavigate={close} />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                ) : hits.length === 0 ? (
+                  <p className="p-8 text-center text-sm text-muted">没有找到与「{query}」相关的内容。</p>
+                ) : (
+                  <SearchResults
+                    hits={hits}
+                    query={query}
+                    activeIndex={active}
+                    onNavigate={close}
+                    idPrefix="search-dialog"
+                  />
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
 
 function SearchIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-cyan-300">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0" aria-hidden>
       <circle cx="11" cy="11" r="7" />
       <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
     </svg>

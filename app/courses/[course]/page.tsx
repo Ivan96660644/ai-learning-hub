@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { CSSProperties } from "react";
+import { CourseIcon } from "@/components/cards";
 import { ChapterStatus, CourseProgress } from "@/components/progress-widgets";
+import { Reveal } from "@/components/reveal";
 import { accent } from "@/lib/accent";
 import { chapterHref, chapterKey, courses, getCourse } from "@/lib/courses";
+
+const d = (ms: number) => ({ "--delay": `${ms}ms` }) as CSSProperties;
 
 export function generateStaticParams() {
   return courses.map((c) => ({ course: c.slug }));
@@ -24,75 +29,74 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   const nextCourse = courses[idx + 1];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-      <nav className="mb-6 text-sm text-slate-500">
-        <Link href="/courses" className="hover:text-cyan-300">
-          课程目录
+    <div className="container-x max-w-5xl">
+      <nav aria-label="面包屑" className="pt-8 text-sm text-muted">
+        <Link href="/courses" className="hover:text-fg">
+          课程
         </Link>
-        <span className="mx-2">/</span>
-        <span className="text-slate-300">{course.title}</span>
+        <span className="mx-2" aria-hidden>
+          ›
+        </span>
+        <span className="text-fg" aria-current="page">
+          {course.title}
+        </span>
       </nav>
 
-      <header className="glass relative overflow-hidden rounded-3xl p-6 sm:p-10">
-        <div className={`absolute -right-10 -top-10 h-48 w-48 rounded-full bg-gradient-to-br ${a.bar} opacity-20 blur-3xl`} />
-        <span className={`grid h-14 w-14 place-items-center rounded-2xl text-2xl ${a.bg} ${a.text}`}>{course.icon}</span>
-        <h1 className="mt-5 font-display text-3xl font-black tracking-wide text-white sm:text-4xl">{course.title}</h1>
-        <p className={`mt-1 text-lg ${a.text}`}>{course.subtitle}</p>
-        <p className="mt-4 max-w-2xl leading-7 text-slate-300">{course.description}</p>
-        <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-400">
-          <span>STAGE 0{course.stage}</span>
-          <span>{course.chapters.length} 章节</span>
-          <span>约 {course.totalMinutes} 分钟</span>
+      <header className="pb-14 pt-12 text-center sm:pt-16">
+        <div className="hero-in flex justify-center" style={d(0)}>
+          <CourseIcon course={course} size="lg" />
         </div>
-        <div className="mt-6 max-w-sm">
+        <p className={`hero-in mt-6 text-lg font-semibold ${a.text}`} style={d(80)}>
+          {course.subtitle}
+        </p>
+        <h1 className="hero-in mt-1 text-4xl font-semibold tracking-tight text-fg sm:text-6xl" style={d(160)}>
+          {course.title}
+        </h1>
+        <p className="hero-in mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted sm:text-xl" style={d(240)}>
+          {course.description}
+        </p>
+        <p className="hero-in mt-4 text-sm text-muted" style={d(300)}>
+          阶段 {course.stage} · {course.chapters.length} 个章节 · 约 {course.totalMinutes} 分钟
+        </p>
+        <div className="hero-in mx-auto mt-8 max-w-xs" style={d(360)}>
           <CourseProgress keys={course.chapters.map(chapterKey)} barClass={a.bar} />
         </div>
-        <Link
-          href={chapterHref(course.chapters[0])}
-          className="neon-btn mt-6 inline-block rounded-xl px-6 py-3 text-sm font-semibold text-white hover:brightness-110"
-        >
-          开始本课程 →
-        </Link>
+        <div className="hero-in mt-8" style={d(420)}>
+          <Link href={chapterHref(course.chapters[0])} className="btn-primary">
+            开始本课程
+          </Link>
+        </div>
       </header>
 
-      <h2 className="mb-4 mt-12 text-xl font-bold text-white">章节列表</h2>
-      <ol className="space-y-3">
+      <h2 className="mb-6 text-2xl font-semibold tracking-tight text-fg">章节</h2>
+      <ol className="space-y-4">
         {course.chapters.map((ch, i) => (
-          <li key={ch.slug}>
-            <Link
-              href={chapterHref(ch)}
-              className={`group glass flex items-start gap-4 rounded-2xl p-5 transition hover:-translate-y-0.5 ${a.border}`}
-            >
-              <span className={`font-display text-2xl font-black ${a.text} opacity-70`}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
+          <Reveal as="li" key={ch.slug} delay={i * 0.06}>
+            <Link href={chapterHref(ch)} className="card lift group flex items-start gap-5 p-6 sm:p-8">
+              <span className="text-3xl font-semibold tabular-nums text-muted/60">{String(i + 1).padStart(2, "0")}</span>
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-white group-hover:text-cyan-100">{ch.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-slate-400">{ch.summary}</p>
-                <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-slate-300">{ch.level}</span>
-                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-slate-300">{ch.minutes} min</span>
-                  {ch.tags.map((t) => (
-                    <span key={t} className="rounded-full border border-white/10 px-2 py-0.5 text-slate-400">
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                <h3 className="text-xl font-semibold tracking-tight text-fg group-hover:text-accent">{ch.title}</h3>
+                <p className="mt-2 leading-7 text-muted">{ch.summary}</p>
+                <p className="mt-3 text-sm text-muted">
+                  {ch.level} · {ch.minutes} 分钟 · {ch.tags.join(" · ")}
+                </p>
               </div>
               <ChapterStatus chapterKey={chapterKey(ch)} />
             </Link>
-          </li>
+          </Reveal>
         ))}
       </ol>
 
       {nextCourse && (
-        <Link
-          href={`/courses/${nextCourse.slug}`}
-          className="glass mt-10 flex items-center justify-between rounded-2xl p-5 transition hover:border-fuchsia-400/50"
-        >
-          <span className="text-sm text-slate-400">下一门课程</span>
-          <span className="font-semibold text-white">{nextCourse.title} →</span>
-        </Link>
+        <Reveal className="mt-12">
+          <Link
+            href={`/courses/${nextCourse.slug}`}
+            className="flex items-center justify-between rounded-3xl bg-surface p-6 transition-colors hover:bg-line"
+          >
+            <span className="text-sm text-muted">下一门课程</span>
+            <span className="font-semibold text-accent">{nextCourse.title} ›</span>
+          </Link>
+        </Reveal>
       )}
     </div>
   );

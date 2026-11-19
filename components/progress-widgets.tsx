@@ -11,16 +11,24 @@ export function CourseProgress({ keys, barClass }: { keys: string[]; barClass: s
   const pct = keys.length ? Math.round((done / keys.length) * 100) : 0;
   return (
     <div>
-      <div className="mb-1.5 flex justify-between text-[11px] text-slate-400">
+      <div className="mb-1.5 flex justify-between text-[11px] text-muted">
         <span>
           已完成 {done}/{keys.length}
         </span>
         <span>{pct}%</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-1 overflow-hidden rounded-full bg-line"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+        aria-label="课程完成度"
+      >
+        {/* scaleX instead of width → no layout work while animating */}
         <div
-          className={`h-full rounded-full bg-gradient-to-r ${barClass} transition-all duration-500`}
-          style={{ width: `${pct}%` }}
+          className={`h-full origin-left rounded-full ${barClass} transition-transform duration-700 ease-[var(--ease-apple)]`}
+          style={{ transform: `scaleX(${pct / 100})` }}
         />
       </div>
     </div>
@@ -33,11 +41,10 @@ export function ChapterStatus({ chapterKey }: { chapterKey: string }) {
   const done = completed.has(chapterKey);
   return (
     <span
-      title={done ? "已完成" : "未完成"}
-      className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[11px] ${
-        done
-          ? "border-lime-300/70 bg-lime-300/15 text-lime-300"
-          : "border-white/15 text-transparent"
+      role="img"
+      aria-label={done ? "已完成" : "未完成"}
+      className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] transition-colors ${
+        done ? "bg-accent text-white" : "border border-line text-transparent"
       }`}
     >
       ✓
@@ -59,13 +66,9 @@ export function CompleteButton({ chapterKey }: { chapterKey: string }) {
       type="button"
       onClick={() => toggle(chapterKey)}
       aria-pressed={done}
-      className={`inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
-        done
-          ? "border border-lime-300/60 bg-lime-300/10 text-lime-200 hover:bg-lime-300/20"
-          : "neon-btn text-white hover:brightness-110"
-      }`}
+      className={done ? "btn-secondary text-[15px]" : "btn-primary text-[15px]"}
     >
-      {done ? "✓ 已完成（点击取消）" : "标记为已完成"}
+      {done ? "✓ 已完成" : "标记为已完成"}
     </button>
   );
 }
@@ -77,7 +80,7 @@ export interface ChapterLite {
   course: string;
 }
 
-/** Homepage widget: overall progress + continue where you left off. */
+/** Overall progress + continue where you left off. */
 export function ContinueLearning({ chapters }: { chapters: ChapterLite[] }) {
   const { completed, last } = useProgress();
   const done = chapters.filter((c) => completed.has(c.key)).length;
@@ -85,37 +88,46 @@ export function ContinueLearning({ chapters }: { chapters: ChapterLite[] }) {
   const lastChapter = chapters.find((c) => c.key === last);
   const nextUp = chapters.find((c) => !completed.has(c.key));
   const target = lastChapter && !completed.has(lastChapter.key) ? lastChapter : nextUp;
+  const r = 26;
+  const circ = 2 * Math.PI * r;
 
   return (
-    <div className="glass rounded-2xl p-5">
-      <div className="flex items-center gap-4">
-        <div
-          className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full"
-          style={{
-            background: `conic-gradient(#ff3df2 ${pct * 3.6}deg, rgba(255,255,255,0.08) 0deg)`,
-          }}
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-[#0a0924] font-display text-sm font-bold text-white">
-            {pct}%
-          </div>
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-widest text-slate-400">My Progress</p>
-          <p className="mt-1 text-sm text-slate-200">
-            已完成 <b className="text-white">{done}</b> / {chapters.length} 篇章节
+    <div className="card p-6">
+      <div className="flex items-center gap-5">
+        <svg width="64" height="64" viewBox="0 0 64 64" className="shrink-0 -rotate-90" aria-hidden>
+          <circle cx="32" cy="32" r={r} fill="none" stroke="var(--line)" strokeWidth="6" />
+          <circle
+            cx="32"
+            cy="32"
+            r={r}
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={circ * (1 - pct / 100)}
+            className="transition-[stroke-dashoffset] duration-700"
+          />
+        </svg>
+        <div>
+          <p className="text-3xl font-semibold tracking-tight text-fg">{pct}%</p>
+          <p className="text-sm text-muted">
+            已完成 {done} / {chapters.length} 篇
           </p>
         </div>
       </div>
       {target ? (
         <Link
           href={target.href}
-          className="mt-4 block rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:border-cyan-400/50"
+          className="mt-5 block rounded-2xl bg-surface p-4 transition-colors hover:bg-line"
         >
-          <p className="text-[11px] text-cyan-300">{done === 0 ? "从这里开始" : "继续学习"} · {target.course}</p>
-          <p className="mt-1 truncate text-sm font-medium text-white">{target.title}</p>
+          <p className="text-xs text-muted">
+            {done === 0 ? "从这里开始" : "继续学习"} · {target.course}
+          </p>
+          <p className="mt-1 truncate font-medium text-fg">{target.title}</p>
         </Link>
       ) : (
-        <p className="mt-4 rounded-xl bg-lime-300/10 p-3 text-sm text-lime-200">🎉 太棒了，你已完成全部章节！</p>
+        <p className="mt-5 rounded-2xl bg-surface p-4 text-sm text-fg">太棒了，你已完成全部章节。</p>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { CopyButton } from "@/components/copy-button";
+import { CodeBlock } from "@/components/code-block";
 import type { Block } from "@/lib/types";
 
 /** Renders **bold**, *italic* and `code` inline markers. */
@@ -15,27 +15,22 @@ export function Inline({ text }: { text: string }) {
 }
 
 const calloutStyle = {
-  tip: { box: "border-lime-300/30 bg-lime-300/[0.06]", title: "text-lime-300", icon: "💡" },
-  warn: { box: "border-amber-300/30 bg-amber-300/[0.06]", title: "text-amber-300", icon: "⚠️" },
-  info: { box: "border-cyan-300/30 bg-cyan-300/[0.06]", title: "text-cyan-300", icon: "ℹ️" },
+  tip: { box: "bg-green-500/[0.07]", title: "text-green-700 dark:text-green-400", label: "提示" },
+  warn: { box: "bg-orange-500/[0.08]", title: "text-orange-700 dark:text-orange-400", label: "注意" },
+  info: { box: "bg-sky-500/[0.08]", title: "text-sky-700 dark:text-sky-400", label: "说明" },
 } as const;
 
 export function ArticleBody({ blocks }: { blocks: Block[] }) {
   let h = 0;
   return (
-    <div className="article space-y-5 text-[15.5px] leading-8 text-slate-300">
+    <div className="article space-y-6 text-[17px] leading-[1.8] text-fg/85">
       {blocks.map((b, i) => {
         switch (b.type) {
           case "h2": {
             const id = `sec-${++h}`;
             return (
-              <h2
-                key={i}
-                id={id}
-                className="group flex items-center gap-3 pt-6 text-xl font-bold text-white sm:text-2xl"
-              >
-                <span className="h-6 w-1 rounded-full bg-gradient-to-b from-fuchsia-400 to-cyan-400" />
-                <a href={`#${id}`} className="hover:text-cyan-200">
+              <h2 key={i} id={id} className="pt-8 text-2xl font-semibold tracking-tight text-fg sm:text-[28px]">
+                <a href={`#${id}`} className="hover:text-accent">
                   {b.text}
                 </a>
               </h2>
@@ -52,7 +47,7 @@ export function ArticleBody({ blocks }: { blocks: Block[] }) {
             return (
               <Tag
                 key={i}
-                className={`space-y-2 pl-6 ${b.ordered ? "list-decimal marker:text-fuchsia-300" : "list-disc marker:text-cyan-300"}`}
+                className={`space-y-2 pl-6 marker:text-muted ${b.ordered ? "list-decimal" : "list-disc"}`}
               >
                 {b.items.map((it, j) => (
                   <li key={j} className="pl-1">
@@ -63,35 +58,13 @@ export function ArticleBody({ blocks }: { blocks: Block[] }) {
             );
           }
           case "code":
-            return (
-              <figure key={i} className="overflow-hidden rounded-xl border border-white/10 bg-[#04030f]/90">
-                <figcaption className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-2">
-                  <span className="flex gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400/70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-300/70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-lime-300/70" />
-                  </span>
-                  <span className="ml-2 truncate font-mono text-xs text-slate-400">{b.title ?? b.lang}</span>
-                  <span className="ml-auto rounded bg-fuchsia-400/10 px-1.5 font-mono text-[10px] uppercase text-fuchsia-300">
-                    {b.lang}
-                  </span>
-                  <CopyButton text={b.code} />
-                </figcaption>
-                <pre className="overflow-x-auto p-4 font-mono text-[13px] leading-6 text-cyan-50">
-                  <code>{b.code}</code>
-                </pre>
-              </figure>
-            );
+            return <CodeBlock key={i} code={b.code} lang={b.lang} title={b.title} />;
           case "callout": {
             const s = calloutStyle[b.tone];
             return (
-              <aside key={i} className={`rounded-xl border p-4 ${s.box}`}>
-                {b.title && (
-                  <p className={`mb-1 font-semibold ${s.title}`}>
-                    {s.icon} {b.title}
-                  </p>
-                )}
-                <p className="text-[15px] leading-7">
+              <aside key={i} className={`rounded-2xl p-5 ${s.box}`} aria-label={b.title ?? s.label}>
+                <p className={`mb-1 text-sm font-semibold ${s.title}`}>{b.title ?? s.label}</p>
+                <p className="text-[16px] leading-7">
                   <Inline text={b.text} />
                 </p>
               </aside>
@@ -99,12 +72,12 @@ export function ArticleBody({ blocks }: { blocks: Block[] }) {
           }
           case "table":
             return (
-              <div key={i} className="overflow-x-auto rounded-xl border border-white/10">
-                <table className="w-full min-w-[480px] text-left text-sm">
-                  <thead className="bg-white/[0.05] text-slate-200">
+              <div key={i} className="overflow-x-auto rounded-2xl border border-line">
+                <table className="w-full min-w-[480px] text-left text-[15px]">
+                  <thead className="bg-surface text-fg">
                     <tr>
                       {b.headers.map((th, j) => (
-                        <th key={j} className="px-4 py-2.5 font-semibold">
+                        <th key={j} scope="col" className="px-4 py-3 font-semibold">
                           {th}
                         </th>
                       ))}
@@ -112,9 +85,9 @@ export function ArticleBody({ blocks }: { blocks: Block[] }) {
                   </thead>
                   <tbody>
                     {b.rows.map((row, r) => (
-                      <tr key={r} className="border-t border-white/5">
+                      <tr key={r} className="border-t border-line">
                         {row.map((cell, c) => (
-                          <td key={c} className={`px-4 py-2.5 leading-6 ${c === 0 ? "font-medium text-white" : ""}`}>
+                          <td key={c} className={`px-4 py-3 leading-6 ${c === 0 ? "font-medium text-fg" : ""}`}>
                             <Inline text={cell} />
                           </td>
                         ))}

@@ -1,163 +1,196 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-display: var(--font-orbitron), var(--font-geist-sans), sans-serif;
-  --color-ink: #06051a;
-  --color-neon-cyan: #22f3ff;
-  --color-neon-pink: #ff3df2;
-  --color-neon-lime: #c6ff3d;
+/* Dark mode is driven by data-theme on <html> (set before paint by an inline script). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------- Design tokens ---------- */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-2: #f5f5f7;
+  --card: #ffffff;
+  --fg: #1d1d1f;
+  --muted: #6e6e73;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --line: rgba(0, 0, 0, 0.08);
+  --nav: rgba(255, 255, 255, 0.72);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 32px -16px rgba(0, 0, 0, 0.12);
+  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05), 0 24px 48px -20px rgba(0, 0, 0, 0.22);
+
+  /* code highlight */
+  --tok-kw: #ad3da4;
+  --tok-str: #c41a16;
+  --tok-num: #1c00cf;
+  --tok-com: #8a8a8e;
+  --tok-fn: #3e8087;
 }
 
-:root {
+[data-theme="dark"] {
   color-scheme: dark;
+  --bg: #000000;
+  --bg-2: #161617;
+  --card: #1c1c1e;
+  --fg: #f5f5f7;
+  --muted: #a1a1a6;
+  --accent: #2997ff;
+  --accent-hover: #47a6ff;
+  --line: rgba(255, 255, 255, 0.12);
+  --nav: rgba(22, 22, 23, 0.72);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.35), 0 24px 48px -20px rgba(0, 0, 0, 0.8);
+
+  --tok-kw: #ff7ab2;
+  --tok-str: #ff8170;
+  --tok-num: #d9c97c;
+  --tok-com: #7f8c98;
+  --tok-fn: #78c2b3;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--bg-2);
+  --color-card: var(--card);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-line: var(--line);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", var(--font-geist-sans),
+    "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", var(--font-geist-mono), ui-monospace, Menlo, Consolas, monospace;
+
+  --shadow-card: var(--shadow);
+  --shadow-card-hover: var(--shadow-hover);
+  --ease-apple: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 5.5rem;
+  scroll-padding-top: 4.5rem;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background-color: var(--color-ink);
-  color: #e6e8ff;
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
+  font-feature-settings: "kern";
+  text-rendering: optimizeLegibility;
+  /* CJK: never start a line with closing punctuation (，。）etc.). */
+  line-break: strict;
+}
+
+/* Even out heading lines and avoid single-character orphans in paragraphs. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
 }
 
 ::selection {
-  background: rgba(255, 61, 242, 0.35);
-  color: #fff;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
-/* ---------- Cyberpunk background ---------- */
-.cyber-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -10;
-  overflow: hidden;
-  pointer-events: none;
-  background:
-    radial-gradient(60rem 40rem at 10% -10%, rgba(255, 61, 242, 0.22), transparent 60%),
-    radial-gradient(50rem 36rem at 95% 5%, rgba(34, 243, 255, 0.18), transparent 60%),
-    radial-gradient(60rem 40rem at 50% 115%, rgba(124, 58, 237, 0.28), transparent 60%),
-    linear-gradient(180deg, #07061d 0%, #06051a 55%, #0b0526 100%);
-}
-
-.cyber-bg::before {
-  /* perspective neon grid floor */
-  content: "";
-  position: absolute;
-  left: -50%;
-  right: -50%;
-  bottom: -10%;
-  height: 60%;
-  background-image:
-    linear-gradient(rgba(255, 61, 242, 0.28) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 243, 255, 0.22) 1px, transparent 1px);
-  background-size: 64px 64px;
-  transform: perspective(520px) rotateX(62deg);
-  transform-origin: center top;
-  mask-image: linear-gradient(to top, black 10%, transparent 85%);
-  animation: grid-move 6s linear infinite;
-  opacity: 0.55;
-}
-
-.cyber-bg::after {
-  /* subtle scanlines */
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.025) 0px,
-    rgba(255, 255, 255, 0.025) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-}
-
-.cyber-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(70px);
-  opacity: 0.45;
-  animation: float 14s ease-in-out infinite;
-}
-
-@keyframes grid-move {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 0 64px;
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(30px, -40px) scale(1.08);
-  }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cyber-bg::before,
-  .cyber-orb {
-    animation: none;
+  html {
+    scroll-behavior: auto;
   }
 }
 
-/* ---------- Reusable UI ---------- */
-@utility glass {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+/* ---------- Layout helpers ---------- */
+@utility container-x {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
 }
 
-@utility neon-text {
-  background: linear-gradient(90deg, #22f3ff 0%, #a78bfa 45%, #ff3df2 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+@utility card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
-@utility neon-btn {
-  background: linear-gradient(90deg, #ff3df2, #8b5cf6 50%, #22d3ee);
-  box-shadow:
-    0 0 24px -6px rgba(255, 61, 242, 0.7),
-    0 0 24px -6px rgba(34, 243, 255, 0.6);
+/* Lift-on-hover: transform + shadow only (no layout shift). */
+@utility lift {
+  transition:
+    transform 0.35s var(--ease-apple),
+    box-shadow 0.35s var(--ease-apple);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
 }
 
-/* ---------- Article typography ---------- */
-.article strong {
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  background: var(--accent);
   color: #fff;
-  font-weight: 600;
+  font-weight: 500;
+  padding: 0.75rem 1.375rem;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  transition: background-color 0.2s ease;
+  &:hover {
+    background: var(--accent-hover);
+  }
 }
 
-.article em {
-  color: #c4b5fd;
+@utility btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 500;
+  padding: 0.75rem 1.375rem;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  &:hover {
+    background: var(--accent);
+    color: #fff;
+  }
 }
 
-.article :not(pre) > code {
-  font-family: var(--font-mono);
-  font-size: 0.86em;
-  padding: 0.12em 0.4em;
-  border-radius: 0.35rem;
-  background: rgba(34, 243, 255, 0.1);
-  color: #7df9ff;
-  border: 1px solid rgba(34, 243, 255, 0.18);
-}
-
-/* ---------- Floating study timer ---------- */
-@keyframes study-pop {
+/* ---------- CSS-only entrance animations ----------
+   Run before hydration, so the hero and page content never wait for JS. */
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.97);
+    transform: translate3d(0, 18px, 0);
   }
   to {
     opacity: 1;
@@ -165,20 +198,89 @@ body {
   }
 }
 
-/* On small screens, reserve room at the page end so the fixed widget
-   never covers the last buttons (e.g. "标记为已完成", 上一篇/下一篇). */
-@media (max-width: 639px) {
-  html[data-study-timer="closed"] body {
-    padding-bottom: 5rem;
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
   }
-  html[data-study-timer="open"] body {
-    padding-bottom: 17rem;
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
+.hero-in {
+  animation: fade-up 0.8s var(--ease-apple) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.page-enter {
+  animation: page-in 0.45s var(--ease-apple) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in,
+  .page-enter {
+    animation: none;
+  }
+}
+
+/* ---------- Article typography ---------- */
+.article strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.article :not(pre) > code,
+.md :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.12em 0.4em;
+  border-radius: 0.375rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+
+.tok-kw {
+  color: var(--tok-kw);
+}
+.tok-str {
+  color: var(--tok-str);
+}
+.tok-num {
+  color: var(--tok-num);
+}
+.tok-com {
+  color: var(--tok-com);
+  font-style: italic;
+}
+.tok-fn {
+  color: var(--tok-fn);
+}
+
 mark {
-  background: rgba(255, 61, 242, 0.3);
-  color: #fff;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: inherit;
   border-radius: 0.2rem;
   padding: 0 0.1em;
+}
+
+/* Hide scrollbars on horizontal rails but keep them scrollable. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- Floating dock spacing ----------
+   On small screens reserve room at the page end so the fixed dock
+   never covers the last buttons (e.g. "标记为已完成", 上一篇/下一篇). */
+@media (max-width: 639px) {
+  html[data-study-timer="closed"] body {
+    padding-bottom: 5.5rem;
+  }
+  html[data-study-timer="open"] body {
+    padding-bottom: 17.5rem;
+  }
 }

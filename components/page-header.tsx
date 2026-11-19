@@ -1,9 +1,19 @@
-export function PageHeader({ en, title, desc }: { en: string; title: string; desc: string }) {
+export function PageHeader({ eyebrow, title, desc }: { eyebrow: string; title: string; desc: string }) {
   return (
-    <header className="mb-10">
-      <p className="font-display text-xs font-bold uppercase tracking-[0.3em] text-fuchsia-300">{en}</p>
-      <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">{title}</h1>
-      <p className="mt-3 max-w-2xl text-slate-400">{desc}</p>
+    <header className="pb-10 pt-14 sm:pb-14 sm:pt-20">
+      <p className="hero-in text-sm font-semibold text-accent">{eyebrow}</p>
+      <h1
+        className="hero-in mt-2 text-4xl font-semibold tracking-tight text-fg sm:text-6xl"
+        style={{ "--delay": "80ms" } as React.CSSProperties}
+      >
+        {title}
+      </h1>
+      <p
+        className="hero-in mt-4 max-w-2xl text-lg leading-8 text-muted sm:text-xl"
+        style={{ "--delay": "160ms" } as React.CSSProperties}
+      >
+        {desc}
+      </p>
     </header>
   );
 }

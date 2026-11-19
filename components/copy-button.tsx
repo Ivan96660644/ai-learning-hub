@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text, label = "复制" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -16,9 +16,10 @@ export function CopyButton({ text }: { text: string }) {
           // clipboard unavailable
         }
       }}
-      className="rounded-md border border-white/10 px-2 py-0.5 text-[11px] text-slate-400 transition hover:border-cyan-400/50 hover:text-cyan-200"
+      aria-label={copied ? "已复制" : label}
+      className="rounded-full px-2.5 py-0.5 text-xs text-muted transition-colors hover:bg-line hover:text-fg"
     >
-      {copied ? "已复制 ✓" : "复制"}
+      <span aria-live="polite">{copied ? "已复制 ✓" : label}</span>
     </button>
   );
 }
