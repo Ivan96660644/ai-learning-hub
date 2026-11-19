@@ -153,6 +153,29 @@ body {
   border: 1px solid rgba(34, 243, 255, 0.18);
 }
 
+/* ---------- Floating study timer ---------- */
+@keyframes study-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* On small screens, reserve room at the page end so the fixed widget
+   never covers the last buttons (e.g. "标记为已完成", 上一篇/下一篇). */
+@media (max-width: 639px) {
+  html[data-study-timer="closed"] body {
+    padding-bottom: 5rem;
+  }
+  html[data-study-timer="open"] body {
+    padding-bottom: 17rem;
+  }
+}
+
 mark {
   background: rgba(255, 61, 242, 0.3);
   color: #fff;
